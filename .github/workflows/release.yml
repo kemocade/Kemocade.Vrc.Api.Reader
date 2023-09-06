@@ -1,0 +1,117 @@
+name: Build Release
+
+on: 
+  workflow_dispatch:
+
+env:
+  packageName: "com.kemocade.vrc.api.reader"
+  unityVersion: 2019.4.31f1
+  vrcSdk: 3.2.3
+  udonSharp: 1.1.9
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Checkout VCC Repo
+        uses: actions/checkout@v3
+        with:
+          repository: kemocade/Kemocade.Vrc.Vcc
+          path: Kemocade.Vrc.Vcc
+          clean: false
+
+      - name: Copy README and LICENSE to Package
+        run: |
+          cp README.md Packages/${{env.packageName}}/README.md
+          cp LICENSE Packages/${{env.packageName}}/LICENSE
+
+      - name: Create Test Project
+        run: |
+          mkdir CodeCoverage
+          mkdir TestProject
+          mkdir TestProject/Assets
+          mkdir TestProject/Packages
+          cp Kemocade.Vrc.Vcc/manifest.json TestProject/Packages/manifest.json
+          cp -r Packages/${{env.packageName}} TestProject/Assets
+
+      - name: Download & Extract VRC Packages in Test Project
+        run: |
+          curl -LO https://github.com/vrchat/packages/releases/download/${{ env.vrcSdk }}/com.vrchat.base-${{ env.vrcSdk }}.zip
+          curl -LO https://github.com/vrchat/packages/releases/download/${{ env.vrcSdk }}/com.vrchat.worlds-${{ env.vrcSdk }}.zip
+          curl -LO https://github.com/vrchat-community/UdonSharp/releases/download/${{ env.udonSharp }}/com.vrchat.UdonSharp.zip
+          unzip com.vrchat.base-${{ env.vrcSdk }}.zip -d TestProject/Packages/com.vrchat.base
+          unzip com.vrchat.worlds-${{ env.vrcSdk }}.zip -d TestProject/Packages/com.vrchat.worlds
+          unzip com.vrchat.UdonSharp.zip -d TestProject/Packages/com.vrchat.udonsharp
+      
+      - name: Cache Test Project Library
+        uses: actions/cache@v3
+        with:
+          path: TestProject/Library
+          key: Library-${{ runner.os }}-${{ env.unityVersion }}
+
+      - name: Run Test Project
+        id: test
+        uses: game-ci/unity-test-runner@v2.2.0
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          projectPath: TestProject
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          unityVersion: ${{ env.unityVersion }}
+          testMode: EditMode
+          customParameters: -nographics -assemblyNames "Kemocade.Vrc.Api.Reader.Tests"
+          coverageOptions: 'generateBadgeReport;generateHtmlReport;assemblyFilters:+Kemocade.Vrc.Api.Reader;pathFilters:+**/Extensions/*'
+
+      - name: Enforce Code Coverage
+        uses: kemocade/Kemocade.Unity.Coverage.Action@1.0.0
+        with:
+          coverage-file-path: ${{ steps.test.outputs.coveragePath }}/Report/Summary.xml
+          required-coverage: 100
+
+      - name: Create Code Coverage Zip
+        run: zip -j coverage.zip ${{ steps.test.outputs.coveragePath }}/Report/*
+
+      # VRChat Template Release Script
+      - name: get version
+        id: version
+        uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
+        with: 
+            path: "Packages/${{env.packageName}}/package.json"
+            prop_path: "version"
+    
+      - name: Set Environment Variables
+        run: |
+          echo "zipFile=${{ env.packageName }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
+          echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
+        
+      - name: Create Zip
+        uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
+        with:
+          type: "zip"
+          directory: "Packages/${{env.packageName}}/"
+          filename: "../../${{env.zipFile}}" # make the zip file two directories up, since we start two directories in above
+          
+      - run: find "Packages/${{env.packageName}}/" -name \*.meta >> metaList
+          
+      - name: Create UnityPackage
+        uses: pCYSl5EDgo/create-unitypackage@cfcd3cf0391a5ef1306342794866a9897c32af0b
+        with:
+          package-path: ${{ env.unityPackage }}
+          include-files: metaList
+          
+      - name: Make Release
+        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        with:
+          tag_name: ${{ steps.version.outputs.prop }}
+          files: |
+            ${{ env.zipFile }}
+            ${{ env.unityPackage }}
+            Packages/${{ env.packageName }}/package.json
+            coverage.zip

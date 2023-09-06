@@ -1,0 +1,10 @@
+# Ignore everything by default
+/*
+
+!.github/
+!Packages/
+Packages/*
+!Packages/com.kemocade.vrc.api.reader
+!.gitignore
+!LICENSE
+!README.md

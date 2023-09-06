@@ -1,0 +1,14 @@
+{
+  "name": "com.kemocade.vrc.api.reader",
+  "displayName": "VRChat API Reader",
+  "version": "1.0.0",
+  "description": "VRChat API Reader",
+  "vpmDependencies": {
+    "com.vrchat.udonsharp": "^1.1.9"
+  },
+  "author": {
+    "name": "dustuu",
+    "email": "dustuu@kemocade.com",
+    "url": "https://kemocade.com"
+  }
+}

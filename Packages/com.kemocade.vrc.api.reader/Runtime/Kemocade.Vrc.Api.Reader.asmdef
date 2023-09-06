@@ -1,0 +1,17 @@
+{
+    "name": "Kemocade.Vrc.Api.Reader",
+    "references": [
+        "VRC.SDK3",
+        "UdonSharp.Runtime",
+        "VRC.Udon.Serialization.OdinSerializer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
