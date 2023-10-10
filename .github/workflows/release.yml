@@ -6,8 +6,7 @@ on:
 env:
   packageName: "com.kemocade.vrc.api.reader"
   unityVersion: 2019.4.31f1
-  vrcSdk: 3.2.3
-  udonSharp: 1.1.9
+  vrcSdk: 3.4.0
 
 permissions:
   contents: write
@@ -45,10 +44,8 @@ jobs:
         run: |
           curl -LO https://github.com/vrchat/packages/releases/download/${{ env.vrcSdk }}/com.vrchat.base-${{ env.vrcSdk }}.zip
           curl -LO https://github.com/vrchat/packages/releases/download/${{ env.vrcSdk }}/com.vrchat.worlds-${{ env.vrcSdk }}.zip
-          curl -LO https://github.com/vrchat-community/UdonSharp/releases/download/${{ env.udonSharp }}/com.vrchat.UdonSharp.zip
           unzip com.vrchat.base-${{ env.vrcSdk }}.zip -d TestProject/Packages/com.vrchat.base
           unzip com.vrchat.worlds-${{ env.vrcSdk }}.zip -d TestProject/Packages/com.vrchat.worlds
-          unzip com.vrchat.UdonSharp.zip -d TestProject/Packages/com.vrchat.udonsharp
       
       - name: Cache Test Project Library
         uses: actions/cache@v3
