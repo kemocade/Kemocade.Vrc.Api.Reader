@@ -18,7 +18,7 @@ A template repository for quickly and easily configuring this workflow is provid
 # Videos
 
 ## Overview
-[![Overview Video](http://img.youtube.com/vi/ED6opI79os4/0.jpg)](http://www.youtube.com/watch?v=ED6opI79os4 "Overview")
+[![Overview Video](http://img.youtube.com/vi/844vgLt39Nc/0.jpg)](http://www.youtube.com/watch?v=844vgLt39Nc "Overview")
 
 ## Step-by-Step Tutorial
 ***Coming Soon!***
